@@ -1,0 +1,17 @@
+{
+  "name": "claude-workspace-typeahead-mod",
+  "owner": {
+    "name": "Ken Collins",
+    "url": "https://github.com/metaskills"
+  },
+  "metadata": {
+    "description": "Type /word or ;word anywhere in a prompt to pull a workspace project or journal entry's CLAUDE.md into it"
+  },
+  "plugins": [
+    {
+      "name": "workspace-typeahead",
+      "source": "./",
+      "description": "Type /word or ;word anywhere in a prompt to pull a workspace project or journal entry's CLAUDE.md into it"
+    }
+  ]
+}
