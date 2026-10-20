@@ -5,13 +5,13 @@
     "url": "https://github.com/metaskills"
   },
   "metadata": {
-    "description": "Type /word or ;word anywhere in a prompt to pull a workspace project or journal entry's CLAUDE.md into it"
+    "description": "Type /word anywhere in a prompt to resolve a dated workspace project or journal entry and pull its CLAUDE.md into it"
   },
   "plugins": [
     {
       "name": "workspace-typeahead",
       "source": "./",
-      "description": "Type /word or ;word anywhere in a prompt to pull a workspace project or journal entry's CLAUDE.md into it"
+      "description": "Type /word anywhere in a prompt to resolve a dated workspace project or journal entry and pull its CLAUDE.md into it"
     }
   ]
 }

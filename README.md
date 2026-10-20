@@ -1,11 +1,11 @@
 # Claude Workspace Typeahead
 
-**Pull any project's notes into any prompt, from anywhere in the sentence.**
+**A resolver for date-prefixed Claude workspaces: type a word you remember, and that entry's notes come along with your prompt.**
 
-You keep a folder of projects and notes, each with a `CLAUDE.md` holding the goal, the status, and what you found. That's the context Claude needs, but getting it into a prompt means remembering a folder name and typing a path. This [Claude Code](https://claude.com/claude-code) plugin turns it into a typeahead: type `;pricing` in the middle of a sentence, pick the row, and the project's `CLAUDE.md` rides along with your prompt as an `@` mention.
+You keep a workspace of dated projects and notes, each folder with a `CLAUDE.md` holding the goal, the status, and what you found. That's the context Claude needs, but getting it into a prompt means remembering a folder name like `2026-03-02-pricing-page-redesign` and typing its path. This [Claude Code](https://claude.com/claude-code) plugin resolves it for you: type `/pricing` anywhere in a sentence, pick the row, and the project's `CLAUDE.md` rides along as an `@` mention.
 
 ```
-> compare the plan in ;pric█
+> compare the plan in /pric█
   @p:pricing-page-redesign       2026-03-02 Pricing Page Redesign
   @j:team-offsite-notes          2026-02-20 Team Offsite Notes - in notes
   @p:quarterly-planning-deck     2026-01-12 Quarterly Planning Deck - in notes
@@ -17,20 +17,20 @@ You keep a folder of projects and notes, each with a `CLAUDE.md` holding the goa
 
 ## Why you'd want it
 
-- **Context without the path.** Mention a project by any word in its title or notes. No folder names, no dates, no `cd`.
-- **Works mid-sentence.** Claude Code's own `/` picker only works at the start of the prompt. This one works wherever your cursor is, even after a `/goal` or another command.
+- **The `/` you already use, now anywhere in the prompt.** Claude Code's own `/` picker only works at the start. This one works wherever your cursor is, even after a `/goal` or another command.
+- **Context without the path.** Resolve an entry by any word in its title or notes. No dates, no folder names, no `cd`, from any folder you start Claude in.
 - **Finds what's only in the notes.** Matches the whole `CLAUDE.md`, not just the title, and marks those rows "- in notes". Remember a detail, not a name.
-- **Several keywords at once.** Join them with `-`: `;latency-embeddings` finds the entry that has both.
+- **Several keywords at once.** Join them with `-`: `/latency-embeddings` finds the entry that has both.
 - **One slash command per entry, for free.** At session start it writes `/p:01-pricing-page-redesign` style commands, newest first, so the built-in `/` menu lists your whole workspace by date and title.
 - **Nothing to maintain.** The index is the folder listing. New project? It's in the typeahead within a minute and in the `/` menu at the next session.
 
 ## Use cases
 
-- **Cross-project questions.** "Does the fix in ;latency change anything in ;pricing?" pulls in both notes files.
-- **Picking up where you left off.** Start a prompt with `;planning` and Enter runs that project's stub command, which tells Claude to read its notes.
-- **Meeting follow-ups.** "Draft the follow-up email from ;vendor-call" grabs the journal entry you wrote during the call.
-- **Long-running goals.** `/goal ship the redesign described in ;pricing` gives the goal the full project context.
-- **Status reports.** "Summarize this week across ;latency ;pricing ;onboarding" gets three files' worth of status in one prompt.
+- **Cross-project questions.** "Does the fix in /latency change anything in /pricing?" pulls in both notes files.
+- **Picking up where you left off.** Start a prompt with `/planning` and Claude Code's own picker lists the project's stub command. Enter tells Claude to read its notes.
+- **Meeting follow-ups.** "Draft the follow-up email from /vendor-call" grabs the journal entry you wrote during the call.
+- **Long-running goals.** `/goal ship the redesign described in /pricing` gives the goal the full project context.
+- **Status reports.** "Summarize this week across /latency /pricing /onboarding" gets three files' worth of status in one prompt.
 
 ## Install
 
@@ -52,7 +52,7 @@ Then tell it where your workspace is (next section) and start a new session.
 
 ## Your workspace
 
-A Claude workspace is a folder of collections, and a collection is a folder of entries. Each entry is a folder with a `CLAUDE.md` whose first `# ` line is its title. By default the plugin reads `~/workspace` with two collections:
+The plugin is built for a workspace where every entry is a folder named with an ISO 8601 date and a short slug, `YYYY-MM-DD-slug`, holding a `CLAUDE.md` whose first `# ` line is its title. Entries are grouped into collections. By default the plugin reads `~/workspace` with two:
 
 ```
 ~/workspace/
@@ -64,24 +64,27 @@ A Claude workspace is a folder of collections, and a collection is a folder of e
 │   │   └── CLAUDE.md
 │   └── archives/                              # skipped
 └── journal/
-    └── 2026-03-04-vendor-call-search-provider/
+    └── 2026-03-04-vendor-call/
         └── CLAUDE.md
 ```
 
-- **Folder names** are `YYYY-MM-DD-short-slug`. The date sorts entries newest first and the slug is what the rows show. Undated folders work too and sort last.
-- **Titles** come from the first `# ` heading. A date at the end, like "- Mar 2026" or "(Jan 2026)", is dropped since the date is shown on its own.
-- **Folders** named `archives` or starting with `.` are skipped.
+The date prefix does the work, so there's nothing else to keep up:
 
-Don't have a workspace yet? Copy [`example-workspace/`](./example-workspace/) to `~/workspace`. Its `CLAUDE.md` tells Claude how to create and register new projects, so "create a new project for the Q3 launch" does the right thing from then on.
+- **The date orders it.** Entries sort newest first by folder name, and the stub commands are ranked the same way.
+- **The slug names it.** The part after the date is the short, stable name in `@p:pricing-page-redesign` and `/p:01-pricing-page-redesign`.
+- **The title describes it.** It comes from the first `# ` heading. A date at the end, like "- Mar 2026" or "(Jan 2026)", is dropped since the date is shown on its own.
+
+Folders named `archives` or starting with `.` are skipped. A folder with no date prefix still works, but it sorts after every dated one.
+
+Don't have a workspace yet? Copy [`example-workspace/`](./example-workspace/) to `~/workspace`. Its `CLAUDE.md` tells Claude how to create and register new projects, so "create a new project for the Q3 launch" makes a correctly dated folder from then on.
 
 ## How it works
 
-Type `/` or `;` followed by at least two characters. The plugin's rows show up below the built-in ones, up to 6, title matches first and then newest first.
+Type `/` followed by at least two characters. The plugin's rows show up below the built-in ones, up to 6, title matches first and then newest first.
 
 | Where the word is | What the row writes | Which entries |
 | :- | :- | :- |
-| Start of the prompt, `;word` | The entry's stub command, such as `/p:01-pricing-page-redesign` | Every match |
-| Start of the prompt, `/word` | The stub command | Only notes matches and entries with no stub, since the built-in picker already shows the rest |
+| Start of the prompt | The entry's stub command, such as `/p:01-pricing-page-redesign` | Only notes matches and entries with no stub, since Claude Code's own picker already lists the stubs by name and title |
 | Anywhere else | `@/path/to/entry/CLAUDE.md`, labeled like `@p:pricing-page-redesign` | Every match |
 
 Each keyword has to match the start of a word, so `rsi` finds "RSI Reset" but not "versions". A row only replaces the one word at the cursor, which is why several keywords are joined with `-` instead of spaces.
@@ -98,7 +101,7 @@ description: "2026-03-02 Pricing Page Redesign"
 Read /Users/you/workspace/projects/2026-03-02-pricing-page-redesign/CLAUDE.md
 ```
 
-Then it asks Claude Code to rescan commands, so they work in that same session. The two-digit rank keeps the `/` menu newest first. Without it the menu is alphabetical, and Claude Code's picker won't match across the `01-`, so `/p:pricing` finds nothing. Type `/pricing` (no namespace) or use `;pricing` instead, or turn ranking off.
+Then it asks Claude Code to rescan commands, so they work in that same session. The two-digit rank keeps the `/` menu newest first. Claude Code's picker won't match across the `01-`, so `/p:pricing` finds nothing. Type `/pricing` with no namespace instead, or turn ranking off for an alphabetical menu.
 
 The plugin only writes to a stub folder it created, marked by a `.workspace-stubs` file, or one that doesn't exist yet. If you already have your own `~/.claude/commands/p/`, it's left alone and `/typeahead-debug` says so. Stale stubs are deleted when their entry is renamed, archived or removed.
 
@@ -123,7 +126,6 @@ Everything is set with environment variables. Put them in the `env` block of `~/
 | `CLAUDE_WORKSPACE_STUBS` | `true` | Set `false` to stop writing stub commands. Rows then write `@` mentions everywhere, or use stubs you generate yourself if they are named `<slug>.md` or `<rank>-<slug>.md` |
 | `CLAUDE_WORKSPACE_STUBS_RANK` | `true` | Set `false` for plain `/p:pricing-page-redesign` names, sorted alphabetically |
 | `CLAUDE_WORKSPACE_COMMANDS_DIR` | `$CLAUDE_CONFIG_DIR/commands`, else `~/.claude/commands` | Where stub folders go |
-| `CLAUDE_WORKSPACE_TYPEAHEAD_TRIGGERS` | `/;` | The characters that start a search |
 | `CLAUDE_WORKSPACE_TYPEAHEAD_ROWS` | `6` | Most rows added per keystroke |
 
 The index re-reads these on every rebuild (at most once a minute while you type). The stubs are written at session start. Changing a variable in `settings.json` takes effect in the next session.
@@ -136,7 +138,7 @@ cd claude-workspace-typeahead-mod
 CLAUDE_WORKSPACE_DIR="$PWD/example-workspace" CLAUDE_WORKSPACE_STUBS=false claude --plugin-dir .
 ```
 
-Then type `what did we find in ;laten` and pick the row.
+Then type `what did we find in /laten` and pick the row.
 
 ## Troubleshooting
 

@@ -15,7 +15,7 @@ export const FILES: Record<string, string> = {
   [`${WS}/projects/2026-01-12-quarterly-planning-deck/CLAUDE.md`]:
     '# Quarterly Planning Deck (Jan 2026)\n\nThe Q2 deck, tied to the pricing work.\n',
   [`${WS}/projects/archives/2025-11-01-old-thing/CLAUDE.md`]: '# Old Thing\n',
-  [`${WS}/journal/2026-03-04-vendor-call-search-provider/CLAUDE.md`]:
+  [`${WS}/journal/2026-03-04-vendor-call/CLAUDE.md`]:
     '# Vendor Call - Search Provider Renewal\n\nTheir vector tier could replace embeddings.\n',
   [`${WS}/journal/2026-02-20-team-offsite-notes/CLAUDE.md`]:
     '# 2026-02-20 Team Offsite Notes\n\nPricing is the top design priority.\n',

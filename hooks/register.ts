@@ -4,33 +4,27 @@ import { describe, label, refresh, search } from './workspace-index.ts'
 import type { Hit } from './workspace-index.ts'
 import { describeStubs, syncStubs } from './workspace-stubs.ts'
 
-// Typeahead rows for the projects and journal entries in a Claude workspace.
+// Resolves a word to a workspace entry's CLAUDE.md, as typeahead rows.
 //
-// - A word like `/pricing` or `;pricing-api` (terms joined with `-`) adds rows
+// - A word like `/pricing` or `/pricing-api` (terms joined with `-`) adds rows
 //   below the built-in ones, wherever the word sits in the prompt.
 // - At the start of the prompt a row writes the entry's stub command, such as
-//   `/p:03-pricing-page`. Under `/` an entry with a stub is only added when it
+//   `/p:03-pricing-page`. An entry with a stub is only added there when it
 //   matches in its CLAUDE.md body, since the built-in picker already matches
-//   stub names and titles there.
+//   stub names and titles.
 // - Mid-sentence, where the built-in picker shows nothing and a command won't
 //   run, a row writes an `@` mention of the entry's CLAUDE.md so its notes go
 //   along with the prompt. So does any entry with no stub.
 // - At session start the stubs are written (see workspace-stubs.ts).
 // - /typeahead-debug: settings, what the index holds and which words the hook saw.
 
-const DEFAULT_TRIGGERS = '/;'
 const DEFAULT_ROWS = 6
+const TRIGGER = /^\/(.{2,})$/
 
-let triggers = DEFAULT_TRIGGERS
-let trigger = /^([\/;])(.{2,})$/
 let maxRows = DEFAULT_ROWS
 let seen: string[] = []
 
 async function readSettings($: EngineInterface): Promise<void> {
-  const chars = [...new Set(((await $.env.get('CLAUDE_WORKSPACE_TYPEAHEAD_TRIGGERS'))?.trim() || DEFAULT_TRIGGERS))]
-  triggers = chars.join('')
-  const set = chars.map(c => c.replace(/[\\\]^-]/g, '\\$&')).join('')
-  trigger = new RegExp(`^([${set}])(.{2,})$`)
   const rows = Number((await $.env.get('CLAUDE_WORKSPACE_TYPEAHEAD_ROWS'))?.trim())
   maxRows = Number.isInteger(rows) && rows > 0 ? rows : DEFAULT_ROWS
 }
@@ -40,11 +34,10 @@ async function readSettings($: EngineInterface): Promise<void> {
 export function toRows(
   hits: readonly Hit[],
   isFirst: boolean,
-  lead: string,
   max: number,
 ): PromptAutocompleteSuggestion[] {
   return hits
-    .filter(h => !(isFirst && lead === '/' && h.entry.stub && !h.inBody))
+    .filter(h => !(isFirst && h.entry.stub && !h.inBody))
     .slice(0, max)
     .map(({ entry: x, inBody }) => {
       const asCommand = isFirst && x.stub
@@ -82,7 +75,7 @@ export const register: Register = on => {
       text: [
         ...describe(),
         ...describeStubs(),
-        `triggers: ${triggers}, up to ${maxRows} rows`,
+        `rows: up to ${maxRows}`,
         `words seen (newest last): ${seen.length ? seen.join('  ') : 'none'}`,
       ].join('\n'),
     }
@@ -91,12 +84,12 @@ export const register: Register = on => {
   on('prompt.autocomplete', async ($, e, next) => {
     seen = [...seen, JSON.stringify(e.token)].slice(-15)
     const own = await next(e)
-    const [, lead, query] = e.token.match(trigger) ?? []
+    const [, query] = e.token.match(TRIGGER) ?? []
     if (!query) return own
 
     void refresh($)
     const isFirst = e.text.slice(0, e.start).trim() === ''
-    const rows = toRows(search(query), isFirst, lead!, maxRows)
+    const rows = toRows(search(query), isFirst, maxRows)
     return { suggestions: [...own.suggestions, ...rows] }
   })
 }

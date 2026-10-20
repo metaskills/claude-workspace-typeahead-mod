@@ -215,7 +215,7 @@ export function search(query: string, kind?: string, list: readonly Entry[] = en
 }
 
 export function label(entry: Entry): string {
-  return `${entry.date} ${entry.title}`.trim().slice(0, 80)
+  return `${entry.date} ${entry.title}`.trim()
 }
 
 // The lines both debug commands lead with

@@ -34,7 +34,7 @@ test('session start writes ranked stubs, newest first, skipping archives', async
   ])
   expect(stubsIn(fs, 'j')).toEqual([
     '.workspace-stubs',
-    '01-vendor-call-search-provider.md',
+    '01-vendor-call.md',
     '02-team-offsite-notes.md',
   ])
   expect(fs.get(`${CMDS}/p/03-quarterly-planning-deck.md`)).toBe(
@@ -67,7 +67,7 @@ test('a commands folder this plugin did not make is left alone', async ($, on) =
   engine(on)
   await $.classic.SessionStart({ source: 'startup' })
   expect(stubsIn(fs, 'p')).toEqual(['handmade.md'])
-  expect(stubsIn(fs, 'j')).toContain('01-vendor-call-search-provider.md')
+  expect(stubsIn(fs, 'j')).toContain('01-vendor-call.md')
 })
 
 test('settings come from environment variables', async ($, on) => {
@@ -82,7 +82,7 @@ test('settings come from environment variables', async ($, on) => {
   expect([...fs.keys()].filter(p => p.startsWith('/home/me/cmds/')).sort()).toEqual([
     '/home/me/cmds/n/.workspace-stubs',
     '/home/me/cmds/n/team-offsite-notes.md',
-    '/home/me/cmds/n/vendor-call-search-provider.md',
+    '/home/me/cmds/n/vendor-call.md',
   ])
 
   const { text } = await $.command.run(typed('typeahead-debug'))
@@ -99,23 +99,19 @@ test('CLAUDE_WORKSPACE_STUBS=false writes nothing', async ($, on) => {
   expect([...fs.keys()].some(p => p.startsWith(CMDS))).toBe(false)
 })
 
-test('rows write the stub at the start of the prompt and an @ mention elsewhere', () => {
+test('rows add only what the built-in picker misses at the start, and @ mentions elsewhere', () => {
   const list = [
     entry('p', 'pricing-page', 'Pricing Page', 'tiers', '/p:01-pricing-page'),
     entry('j', 'offsite', 'Team Offsite', 'pricing is the priority'),
   ]
   const hits = search('pricing', undefined, list)
 
-  expect(toRows(hits, true, ';', 6).map(r => r.text)).toEqual([
-    '/p:01-pricing-page',
-    `@${WS}/x/offsite/CLAUDE.md`,
-  ])
-  // Under `/` the built-in picker already lists stubbed title matches
-  expect(toRows(hits, true, '/', 6).map(r => r.label)).toEqual(['@j:offsite'])
-  const mid = toRows(hits, false, '/', 6)
+  // At the start the built-in picker already lists stubbed title matches
+  expect(toRows(hits, true, 6).map(r => r.text)).toEqual([`@${WS}/x/offsite/CLAUDE.md`])
+  const mid = toRows(hits, false, 6)
   expect(mid.map(r => r.label)).toEqual(['@p:pricing-page', '@j:offsite'])
   expect(mid[1]?.description).toBe('2026-01-01 Team Offsite - in notes')
-  expect(toRows(hits, false, '/', 1)).toHaveLength(1)
+  expect(toRows(hits, false, 1)).toHaveLength(1)
 })
 
 test('search matches the start of words, every keyword, titles first', () => {
