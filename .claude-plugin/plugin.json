@@ -2,9 +2,25 @@
   "name": "workspace-typeahead",
   "version": "1.1.0",
   "description": "Type /word anywhere in a prompt to resolve a dated workspace project or journal entry and pull its CLAUDE.md into it",
-  "author": { "name": "Ken Collins", "url": "https://github.com/metaskills" },
+  "author": {
+    "name": "Ken Collins",
+    "url": "https://github.com/metaskills"
+  },
   "homepage": "https://github.com/metaskills/claude-workspace-typeahead-mod",
   "repository": "https://github.com/metaskills/claude-workspace-typeahead-mod",
   "license": "MIT",
-  "keywords": ["workspace", "typeahead", "autocomplete", "claude-md", "mentions", "projects", "journal"]
+  "keywords": [
+    "claude-code",
+    "claude-code-plugin",
+    "claude-md",
+    "context-engineering",
+    "workspace",
+    "knowledge-management",
+    "second-brain",
+    "slash-commands",
+    "typeahead",
+    "autocomplete",
+    "mentions",
+    "resolver"
+  ]
 }
